@@ -1,0 +1,603 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Africa Plan Foundation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-5 fw-bold text-gradient">Welcome, {{ user.first_name|default:user.username }}</h1>
+                <p class="lead text-muted">Track your progress and manage your assessments</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="user-status">
+                    <span class="badge rounded-pill bg-{{ user.application_status|lower }}">{{ user.application_status }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="material-icons">assignment</i>
+                        </div>
+                        <div class="stat-info ms-3">
+                            <h6 class="stat-title text-muted mb-0">Tests Available</h6>
+                            <h3 class="stat-value mb-0">{{ available_tests|default:"0" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="material-icons">check_circle</i>
+                        </div>
+                        <div class="stat-info ms-3">
+                            <h6 class="stat-title text-muted mb-0">Tests Completed</h6>
+                            <h3 class="stat-value mb-0">{{ completed_tests|default:"0" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon">
+                            <i class="material-icons">trending_up</i>
+                        </div>
+                        <div class="stat-info ms-3">
+                            <h6 class="stat-title text-muted mb-0">Average Score</h6>
+                            <h3 class="stat-value mb-0">{{ average_score|default:"0"|floatformat:1 }}%</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Welcome Message -->
+    <div class="card welcome-card mb-4">
+        <div class="card-body">
+            <div class="d-flex">
+                <div class="welcome-icon me-3">
+                    <i class="material-icons">info</i>
+                </div>
+                <div>
+                    <h4 class="card-title">Welcome to Africa Plan Foundation Test Platform!</h4>
+                    <p>Before you start testing, please ensure you:</p>
+                    <ul class="checklist">
+                        <li><i class="material-icons">check_circle</i> Have a stable internet connection</li>
+                        <li><i class="material-icons">check_circle</i> Set aside the required time to complete each test without interruptions</li>
+                        <li><i class="material-icons">check_circle</i> Understand that once a test is started, the timer cannot be paused</li>
+                        <li><i class="material-icons">check_circle</i> Have reviewed the test descriptions and requirements</li>
+                    </ul>
+                    <p class="mb-0">Good luck with your assessments for HackathonAfrica 3.0!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Profile and Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card profile-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Your Profile</h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="material-icons small">edit</i> Edit</a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="profile-item mb-3">
+                                <span class="profile-label">Email</span>
+                                <span class="profile-value">{{ user.email }}</span>
+                            </div>
+                            <div class="profile-item mb-3">
+                                <span class="profile-label">Username</span>
+                                <span class="profile-value">{{ user.username }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="profile-item mb-3">
+                                <span class="profile-label">Full Name</span>
+                                <span class="profile-value">{{ user.get_full_name|default:"Not specified" }}</span>
+                            </div>
+                            <div class="profile-item mb-3">
+                                <span class="profile-label">LGA</span>
+                                <span class="profile-value">{{ user.lga|default:"Not specified" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card quick-actions-card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{% url 'tests:test-list' %}" class="action-button">
+                                <div class="action-icon">
+                                    <i class="material-icons">assignment</i>
+                                </div>
+                                <span class="action-text">View Tests</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'tests:results' %}" class="action-button">
+                                <div class="action-icon">
+                                    <i class="material-icons">analytics</i>
+                                </div>
+                                <span class="action-text">View Results</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="action-button">
+                                <div class="action-icon">
+                                    <i class="material-icons">help</i>
+                                </div>
+                                <span class="action-text">Get Help</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" class="action-button">
+                                <div class="action-icon">
+                                    <i class="material-icons">settings</i>
+                                </div>
+                                <span class="action-text">Settings</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Test Attempts -->
+    <div class="card recent-attempts-card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">Recent Test Attempts</h5>
+            <a href="{% url 'tests:attempt-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body">
+            {% if test_attempts %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Test</th>
+                            <th>Started</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in test_attempts %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="test-icon me-2">
+                                        <i class="material-icons">{% if attempt.is_completed %}assignment_turned_in{% else %}assignment{% endif %}</i>
+                                    </div>
+                                    <span>{{ attempt.test.title }}</span>
+                                </div>
+                            </td>
+                            <td>{{ attempt.start_time|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <span class="badge rounded-pill bg-soft-success text-success">Completed</span>
+                                {% else %}
+                                <span class="badge rounded-pill bg-soft-warning text-warning">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <div class="score-display">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if attempt.score >= 70 %}bg-success{% elif attempt.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ attempt.score }}%;" 
+                                             aria-valuenow="{{ attempt.score }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="score-text">{{ attempt.score|floatformat:1 }}%</span>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <a href="{% url 'tests:attempt-detail' attempt.id %}" class="btn btn-sm btn-soft-primary">View Results</a>
+                                {% else %}
+                                <a href="{% url 'tests:take-test' attempt.test.id %}" class="btn btn-sm btn-soft-success">Continue</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-3">
+                    <i class="material-icons">assignment</i>
+                </div>
+                <h5>No Test Attempts Yet</h5>
+                <p class="text-muted">You haven't attempted any tests yet.</p>
+                <a href="{% url 'tests:test-list' %}" class="btn btn-primary mt-2">Browse Available Tests</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modern soothing color palette */
+    :root {
+        --soft-blue: #6e9eff;
+        --soft-green: #63c7b2;
+        --soft-purple: #8b80f9;
+        --soft-yellow: #ffcf5c;
+        --soft-red: #ff7e7e;
+        --soft-bg: #f8fafc;
+        --soft-card: #ffffff;
+        --soft-text: #4a5568;
+        --soft-text-light: #718096;
+        --soft-border: #e2e8f0;
+        --soft-hover: #edf2f7;
+    }
+    
+    /* Dashboard specific styles */
+    .dashboard-container {
+        padding: 1rem 0;
+    }
+    
+    .text-gradient {
+        background: linear-gradient(90deg, var(--soft-green), var(--soft-blue));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: var(--soft-card);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background-color: rgba(110, 158, 255, 0.1);
+        color: var(--soft-blue);
+    }
+    
+    .stat-icon .material-icons {
+        font-size: 24px;
+    }
+    
+    .stat-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--soft-text-light);
+    }
+    
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--soft-text);
+    }
+    
+    /* Welcome card */
+    .welcome-card {
+        border: none;
+        border-radius: 16px;
+        background-color: rgba(99, 199, 178, 0.05);
+        border-left: 4px solid var(--soft-green);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    
+    .welcome-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: var(--soft-green);
+        color: white;
+    }
+    
+    .welcome-icon .material-icons {
+        font-size: 24px;
+    }
+    
+    .checklist {
+        list-style: none;
+        padding-left: 0;
+    }
+    
+    .checklist li {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        color: var(--soft-text);
+    }
+    
+    .checklist li .material-icons {
+        color: var(--soft-green);
+        font-size: 18px;
+        margin-right: 0.5rem;
+    }
+    
+    /* Profile card */
+    .profile-card, .quick-actions-card, .recent-attempts-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        background-color: var(--soft-card);
+    }
+    
+    .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid var(--soft-border);
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .card-title {
+        color: var(--soft-text);
+        font-weight: 600;
+    }
+    
+    .profile-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .profile-label {
+        font-size: 0.85rem;
+        color: var(--soft-text-light);
+        margin-bottom: 0.25rem;
+    }
+    
+    .profile-value {
+        font-weight: 500;
+        color: var(--soft-text);
+    }
+    
+    /* Quick actions */
+    .action-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 1rem;
+        border-radius: 12px;
+        background-color: var(--soft-hover);
+        color: var(--soft-text);
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .action-button:hover {
+        background-color: var(--soft-blue);
+        color: white;
+        transform: translateY(-5px);
+    }
+    
+    .action-icon {
+        margin-bottom: 0.5rem;
+    }
+    
+    .action-icon .material-icons {
+        font-size: 24px;
+    }
+    
+    .action-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    
+    /* Table styles */
+    .table {
+        font-size: 0.95rem;
+        color: var(--soft-text);
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        color: var(--soft-text-light);
+        border-bottom: 1px solid var(--soft-border);
+    }
+    
+    .table-light {
+        background-color: var(--soft-bg);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: var(--soft-hover);
+    }
+    
+    .test-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background-color: rgba(110, 158, 255, 0.1);
+        color: var(--soft-blue);
+    }
+    
+    .test-icon .material-icons {
+        font-size: 18px;
+    }
+    
+    .score-display {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 100px;
+    }
+    
+    .score-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--soft-text);
+    }
+    
+    /* Empty state */
+    .empty-state {
+        padding: 2rem;
+    }
+    
+    .empty-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background-color: rgba(110, 158, 255, 0.1);
+        color: var(--soft-blue);
+        margin: 0 auto;
+    }
+    
+    .empty-icon .material-icons {
+        font-size: 32px;
+    }
+    
+    /* Soft UI Buttons */
+    .btn-soft-primary {
+        background-color: rgba(110, 158, 255, 0.1);
+        color: var(--soft-blue);
+        border: none;
+        font-weight: 500;
+    }
+    
+    .btn-soft-primary:hover {
+        background-color: var(--soft-blue);
+        color: white;
+    }
+    
+    .btn-soft-success {
+        background-color: rgba(99, 199, 178, 0.1);
+        color: var(--soft-green);
+        border: none;
+        font-weight: 500;
+    }
+    
+    .btn-soft-success:hover {
+        background-color: var(--soft-green);
+        color: white;
+    }
+    
+    .btn-outline-primary {
+        border-color: var(--soft-blue);
+        color: var(--soft-blue);
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: var(--soft-blue);
+        border-color: var(--soft-blue);
+    }
+    
+    .btn-primary {
+        background-color: var(--soft-blue);
+        border-color: var(--soft-blue);
+    }
+    
+    .btn-primary:hover {
+        background-color: #5a8aff;
+        border-color: #5a8aff;
+    }
+    
+    /* Soft badges */
+    .bg-soft-success {
+        background-color: rgba(99, 199, 178, 0.1);
+    }
+    
+    .bg-soft-warning {
+        background-color: rgba(255, 207, 92, 0.1);
+    }
+    
+    .bg-soft-danger {
+        background-color: rgba(255, 126, 126, 0.1);
+    }
+    
+    .text-success {
+        color: var(--soft-green) !important;
+    }
+    
+    .text-warning {
+        color: var(--soft-yellow) !important;
+    }
+    
+    .text-danger {
+        color: var(--soft-red) !important;
+    }
+    
+    /* Progress bars */
+    .progress {
+        background-color: var(--soft-hover);
+        border-radius: 10px;
+    }
+    
+    .progress-bar.bg-success {
+        background-color: var(--soft-green) !important;
+    }
+    
+    .progress-bar.bg-warning {
+        background-color: var(--soft-yellow) !important;
+    }
+    
+    .progress-bar.bg-danger {
+        background-color: var(--soft-red) !important;
+    }
+    
+    /* Badge colors */
+    .bg-pending {
+        background-color: var(--soft-text-light);
+    }
+    
+    .bg-approved {
+        background-color: var(--soft-green);
+    }
+    
+    .bg-rejected {
+        background-color: var(--soft-red);
+    }
+</style>
+{% endblock %}

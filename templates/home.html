@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ site_settings.site_title }} - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section (full width) -->
+<section class="hero-section">
+    <div class="hero-container" {% if site_settings.hero_image %}style="background-image: url('{{ site_settings.hero_image.url }}')"{% else %}style="background-image: linear-gradient(135deg, var(--apf-dark-blue), var(--apf-green))"{% endif %}>
+        <div class="hero-overlay"></div>
+        <div class="container position-relative">
+            <div class="row">
+                <div class="col-lg-8 col-md-10 mx-auto text-center">
+                    <h1 class="hero-title mb-4">{{ site_settings.hero_title|default:"Welcome to Africa Plan Foundation" }}</h1>
+                    <p class="hero-subtitle mb-5">{{ site_settings.hero_subtitle|default:"Take assessments and improve your skills" }}</p>
+                    <div class="hero-buttons">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'tests:dashboard' %}" class="btn btn-primary btn-lg me-3">Go to Dashboard</a>
+                            <a href="{% url 'tests:test-list' %}" class="btn btn-outline-light btn-lg">View Tests</a>
+                        {% else %}
+                            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg me-3">Login</a>
+                            <a href="{% url 'account_signup' %}" class="btn btn-outline-light btn-lg">Register</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Rest of the content (contained) -->
+<div class="container">
+    <!-- Features Section -->
+    <section class="features-section py-5">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">Why Choose Our Platform</h2>
+                <p class="section-subtitle">We provide a comprehensive testing platform designed to assess and enhance your skills</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="material-icons">school</i>
+                        </div>
+                        <h4 class="feature-title">Skill Assessment</h4>
+                        <p class="feature-text">Take tests to evaluate your current skill level and identify areas for improvement.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="material-icons">trending_up</i>
+                        </div>
+                        <h4 class="feature-title">Track Progress</h4>
+                        <p class="feature-text">Monitor your improvement over time with detailed performance analytics.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="feature-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="feature-icon mb-3">
+                            <i class="material-icons">verified</i>
+                        </div>
+                        <h4 class="feature-title">Get Certified</h4>
+                        <p class="feature-text">Earn certificates upon successful completion of tests to showcase your abilities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works-section py-5 bg-light">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">How It Works</h2>
+                <p class="section-subtitle">Getting started is easy with our simple three-step process</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="step-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="step-number">1</div>
+                        <h4 class="step-title">Create an Account</h4>
+                        <p class="step-text">Register for free and set up your profile to get started.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="step-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="step-number">2</div>
+                        <h4 class="step-title">Choose a Test</h4>
+                        <p class="step-text">Browse available tests and select one that matches your interests.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="step-card card h-100">
+                    <div class="card-body text-center">
+                        <div class="step-number">3</div>
+                        <h4 class="step-title">Complete & Review</h4>
+                        <p class="step-text">Take the test and review your results to identify areas for improvement.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section py-5">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="section-title">What Our Users Say</h2>
+                <p class="section-subtitle">Hear from people who have used our platform</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <div class="testimonial-card card h-100">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                        </div>
+                        <p class="testimonial-text">"This platform helped me identify my strengths and weaknesses. The tests are well-designed and provide valuable feedback."</p>
+                        <div class="testimonial-author">
+                            <h5 class="author-name">John Doe</h5>
+                            <p class="author-title">Software Developer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="testimonial-card card h-100">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                        </div>
+                        <p class="testimonial-text">"I've used many testing platforms, but this one stands out for its user-friendly interface and comprehensive assessment tools."</p>
+                        <div class="testimonial-author">
+                            <h5 class="author-name">Jane Smith</h5>
+                            <p class="author-title">Data Scientist</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="testimonial-card card h-100">
+                    <div class="card-body">
+                        <div class="testimonial-rating mb-3">
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star</i>
+                            <i class="material-icons">star_half</i>
+                        </div>
+                        <p class="testimonial-text">"The certificates I earned through this platform helped me showcase my skills to potential employers. Highly recommended!"</p>
+                        <div class="testimonial-author">
+                            <h5 class="author-name">Michael Johnson</h5>
+                            <p class="author-title">Web Developer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section py-5">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="cta-card card">
+                    <div class="card-body text-center py-5">
+                        <h2 class="cta-title mb-4">Ready to Get Started?</h2>
+                        <p class="cta-text mb-4">Join thousands of users who are already improving their skills with our platform.</p>
+                        <div class="cta-buttons">
+                            {% if user.is_authenticated %}
+                                <a href="{% url 'tests:test-list' %}" class="btn btn-primary btn-lg">Browse Tests</a>
+                            {% else %}
+                                <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">Sign Up Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

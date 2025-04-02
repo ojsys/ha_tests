@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ test.title }} - HackaTest{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">{{ test.title }}</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Test Details</h5>
+            <p class="card-text">{{ test.description }}</p>
+            <p><strong>Duration:</strong> {{ test.duration_minutes }} minutes</p>
+            <p><strong>Total Questions:</strong> {{ test.questions.count }}</p>
+            
+            <!-- Find the section with question types and fix the filter syntax -->
+            <div class="mt-4">
+                <h6>Question Types:</h6>
+                <ul>
+                    {% with mcq_count=test.questions.all|dictsort:"question_type"|length %}
+                    {% if mcq_count > 0 %}
+                    <li>Multiple Choice Questions: {{ mcq_count }}</li>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    {% with code_count=test.questions.all|dictsort:"question_type"|length %}
+                    {% if code_count > 0 %}
+                    <li>Coding Questions: {{ code_count }}</li>
+                    {% endif %}
+                    {% endwith %}
+                    
+                    {% with text_count=test.questions.all|dictsort:"question_type"|length %}
+                    {% if text_count > 0 %}
+                    <li>Short Answer Questions: {{ text_count }}</li>
+                    {% endif %}
+                    {% endwith %}
+                </ul>
+            </div>
+            
+            <div class="alert alert-warning mt-4">
+                <h6 class="alert-heading">Important Notes:</h6>
+                <ul>
+                    <li>Once you start the test, the timer cannot be paused.</li>
+                    <li>Ensure you have a stable internet connection before starting.</li>
+                    <li>You must complete the test within {{ test.duration_minutes }} minutes.</li>
+                    <li>Your answers are automatically saved as you progress.</li>
+                </ul>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'frontend:take-test' test.id %}" class="btn btn-primary btn-lg">Start Test</a>
+                <a href="{% url 'frontend:test-list' %}" class="btn btn-outline-secondary">Back to Tests</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

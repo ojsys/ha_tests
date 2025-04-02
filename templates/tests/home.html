@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 mb-4">Welcome to HackaTest</h1>
+        <p class="lead">The official testing platform for HackathonAfrica 3.0 applicants</p>
+        
+        <div class="card mt-5">
+            <div class="card-body">
+                <h5 class="card-title">Ready to showcase your skills?</h5>
+                <p class="card-text">Take our assessment tests to demonstrate your technical abilities and problem-solving skills.</p>
+                <a href="{% url 'frontend:test-list' %}" class="btn btn-primary">View Available Tests</a>
+            </div>
+        </div>
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Multiple Choice</h5>
+                        <p class="card-text">Test your knowledge with multiple-choice questions covering various programming concepts.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Coding Challenges</h5>
+                        <p class="card-text">Solve real-world programming problems to demonstrate your coding abilities.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Short Answers</h5>
+                        <p class="card-text">Express your understanding of technical concepts through written responses.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            <h3>How It Works</h3>
+            <ol class="text-start">
+                <li>Register for an account or log in if you already have one</li>
+                <li>Browse available tests in your dashboard</li>
+                <li>Start a test and complete it within the allocated time</li>
+                <li>Submit your answers for evaluation</li>
+                <li>Review your results and feedback</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Africa Plan Foundation - Test Platform{% endblock %}</title>
+    <!-- Material Design Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/custom.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --soft-blue: #6e9eff;
+            --soft-green: #63c7b2;
+            --soft-purple: #8b80f9;
+            --soft-yellow: #ffcf5c;
+            --soft-red: #ff7e7e;
+            --soft-bg: #f8fafc;
+            --soft-card: #ffffff;
+            --soft-text: #4a5568;
+            --soft-text-light: #718096;
+            --soft-border: #e2e8f0;
+            --soft-hover: #edf2f7;
+            --soft-footer: #2d3748;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--soft-bg);
+            color: var(--soft-text);
+        }
+        
+        /* Modern Navbar */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            padding: 0.75rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--soft-text) !important;
+        }
+        
+        .navbar-brand img {
+            filter: brightness(1.1);
+        }
+        
+        .navbar-nav .nav-item {
+            margin: 0 0.25rem;
+        }
+        
+        .navbar-nav .nav-link {
+            color: var(--soft-text-light) !important;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-nav .nav-link:hover, 
+        .navbar-nav .nav-link.active {
+            color: var(--soft-blue) !important;
+            background-color: rgba(110, 158, 255, 0.1);
+        }
+        
+        .navbar-nav .nav-link .material-icons {
+            font-size: 18px;
+            vertical-align: middle;
+        }
+        
+        .navbar-toggler {
+            border: none;
+            color: var(--soft-text);
+        }
+        
+        /* Consistent Button Styles */
+        .btn-apf {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-purple));
+            color: white !important;
+            border: none;
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(110, 158, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-apf:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--soft-purple), var(--soft-blue));
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn-apf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(110, 158, 255, 0.4);
+        }
+        
+        .btn-apf:hover:before {
+            opacity: 1;
+        }
+        
+        .btn-apf:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(110, 158, 255, 0.4);
+        }
+        
+        .btn-apf-outline {
+            background: transparent;
+            color: var(--soft-blue) !important;
+            border: 2px solid var(--soft-blue);
+            border-radius: 10px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 500;
+            box-shadow: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-apf-outline:hover {
+            background-color: var(--soft-blue);
+            color: white !important;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(110, 158, 255, 0.2);
+        }
+        
+        .btn-apf-outline:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(110, 158, 255, 0.2);
+        }
+        
+        .btn-apf-sm {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .btn-apf-lg {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+        }
+        
+        /* Form controls to match button style */
+        .form-control:focus {
+            border-color: var(--soft-blue);
+            box-shadow: 0 0 0 0.25rem rgba(110, 158, 255, 0.25);
+        }
+        
+        /* Content Wrapper */
+        .content-wrapper {
+            min-height: calc(100vh - 300px);
+            padding-bottom: 3rem;
+        }
+        
+        /* Modern Footer */
+        footer {
+            background: linear-gradient(135deg, #2d3748, #1a202c);
+            color: #e2e8f0;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 20%);
+        }
+        
+        footer h5 {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        footer h5::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--soft-blue);
+            border-radius: 3px;
+        }
+        
+        footer p, footer li {
+            color: #a0aec0;
+            line-height: 1.7;
+        }
+        
+        footer a {
+            color: #cbd5e0 !important;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            color: white !important;
+            text-decoration: none;
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-icons a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            background-color: var(--soft-blue);
+            transform: translateY(-3px);
+        }
+        
+        .social-icons .material-icons {
+            font-size: 18px;
+        }
+        
+        .footer-bottom {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 1rem 0;
+            font-size: 0.9rem;
+        }
+        
+        /* Alert Messages */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .alert-success {
+            background-color: rgba(99, 199, 178, 0.1);
+            color: var(--soft-green);
+        }
+        
+        .alert-warning {
+            background-color: rgba(255, 207, 92, 0.1);
+            color: var(--soft-yellow);
+        }
+        
+        .alert-danger, .alert-error {
+            background-color: rgba(255, 126, 126, 0.1);
+            color: var(--soft-red);
+        }
+        
+        .alert-info {
+            background-color: rgba(110, 158, 255, 0.1);
+            color: var(--soft-blue);
+        }
+        
+        .alert .material-icons {
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                {% if site_settings.logo %}
+                <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name }}" height="40" class="me-2">
+                {% else %}
+                <img src="/static/img/logo.png" alt="Africa Plan Foundation" height="40" class="me-2">
+                {% endif %}
+                <span>{{ site_settings.site_name|default:"Africa Plan Foundation" }}</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarNav">
+                <i class="material-icons">menu</i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                            <i class="material-icons me-1">home</i> Home
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'dashboard' in request.path %}active{% endif %}" href="{% url 'tests:dashboard' %}">
+                            <i class="material-icons me-1">dashboard</i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'test-list' in request.path %}active{% endif %}" href="{% url 'tests:test-list' %}">
+                            <i class="material-icons me-1">assignment</i> Tests
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_logout' %}">
+                            <i class="material-icons me-1">logout</i> Logout
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'login' in request.path %}active{% endif %}" href="{% url 'account_login' %}">
+                            <i class="material-icons me-1">login</i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-apf" href="{% url 'account_signup' %}">
+                            <i class="material-icons me-1">person_add</i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content-wrapper mt-5 pt-5">
+        {% if messages %}
+        <div class="container">
+            <div class="messages mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} fade show" role="alert">
+                    <i class="material-icons me-2">{% if message.tags == 'success' %}check_circle{% elif message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}</i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Script to convert buttons to APF style -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Convert primary buttons to APF style
+            document.querySelectorAll('.btn-primary:not(.btn-apf)').forEach(function(button) {
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-apf');
+            });
+            
+            // Convert success buttons to APF style
+            document.querySelectorAll('.btn-success:not(.btn-apf)').forEach(function(button) {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-apf');
+            });
+            
+            // Convert outline buttons to APF outline style
+            document.querySelectorAll('.btn-outline-primary:not(.btn-apf-outline)').forEach(function(button) {
+                button.classList.remove('btn-outline-primary');
+                button.classList.add('btn-apf-outline');
+            });
+            
+            // Convert secondary buttons to APF outline style
+            document.querySelectorAll('.btn-secondary:not(.btn-apf-outline)').forEach(function(button) {
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-apf-outline');
+            });
+            
+            // Convert small buttons
+            document.querySelectorAll('.btn-sm').forEach(function(button) {
+                if (button.classList.contains('btn-apf') || button.classList.contains('btn-apf-outline')) {
+                    button.classList.add('btn-apf-sm');
+                }
+            });
+            
+            // Convert form submit buttons
+            document.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function(button) {
+                if (!button.classList.contains('btn-apf') && !button.classList.contains('btn-close')) {
+                    button.classList.add('btn', 'btn-apf');
+                }
+            });
+            
+            // Fix dashboard redirect if needed
+            if (window.location.pathname === '/dashboard/' && document.referrer.includes('login')) {
+                window.location.href = '{% url "tests:dashboard" %}';
+            }
+        });
+    </script>
+
+    <!-- Modern Footer -->
+    <footer>
+        <div class="container py-5">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <h5>About Us</h5>
+                    <p>
+                        Africa Plan Foundation is dedicated to empowering African youth through education and technology, creating opportunities for growth and development.
+                    </p>
+                    <div class="social-icons">
+                        <a href="#!" aria-label="Facebook"><i class="material-icons">facebook</i></a>
+                        <a href="#!" aria-label="Twitter"><i class="material-icons">twitter</i></a>
+                        <a href="#!" aria-label="Instagram"><i class="material-icons">instagram</i></a>
+                        <a href="#!" aria-label="LinkedIn"><i class="material-icons">linkedin</i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="/">Home</a></li>
+                        <li class="mb-2"><a href="{% url 'tests:test-list' %}">Tests</a></li>
+                        <li class="mb-2"><a href="#!">About Us</a></li>
+                        <li class="mb-2"><a href="#!">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5>Programs</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#!">Hackathon Africa</a></li>
+                        <li class="mb-2"><a href="#!">UpSkill</a></li>
+                        <li class="mb-2"><a href="#!">Mentorship</a></li>
+                        <li class="mb-2"><a href="#!">Scholarships</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <h5>Contact Us</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="material-icons me-2" style="font-size: 18px;">location_on</i>
+                            <span>Enugu, Nigeria</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="material-icons me-2" style="font-size: 18px;">email</i>
+                            <span>info@africaplanfoundation.org</span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="material-icons me-2" style="font-size: 18px;">phone</i>
+                            <span>+234 901 517 0830</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-0">&copy; {% now "Y" %} Africa Plan Foundation. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <p class="mb-0">
+                            <a href="#!">Privacy Policy</a> | 
+                            <a href="#!">Terms of Service</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MDB JS -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

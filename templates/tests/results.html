@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Results - HackaTest{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Your Test Results</h1>
+    
+    {% if attempts %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Test</th>
+                    <th>Date Completed</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td>{{ attempt.test.title }}</td>
+                    <td>{{ attempt.end_time|date:"M d, Y H:i" }}</td>
+                    <td>{{ attempt.score|floatformat:2 }}%</td>
+                    <td>
+                        {% if attempt.score >= 70 %}
+                        <span class="badge bg-success">Passed</span>
+                        {% else %}
+                        <span class="badge bg-danger">Failed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'tests:attempt-detail' attempt.id %}" class="btn btn-sm btn-info">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        You haven't completed any tests yet. <a href="{% url 'tests:test-list' %}">View available tests</a>.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
