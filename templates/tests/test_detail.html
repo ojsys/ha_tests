@@ -1,55 +1,109 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}{{ test.title }} - HackaTest{% endblock %}
+{% block title %}{{ test.title }}{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">{{ test.title }}</h1>
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Test Details</h5>
-            <p class="card-text">{{ test.description }}</p>
-            <p><strong>Duration:</strong> {{ test.duration_minutes }} minutes</p>
-            <p><strong>Total Questions:</strong> {{ test.questions.count }}</p>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>{{ test.title }}</h1>
+            <p class="lead">{{ test.description }}</p>
             
-            <!-- Find the section with question types and fix the filter syntax -->
-            <div class="mt-4">
-                <h6>Question Types:</h6>
-                <ul>
-                    {% with mcq_count=test.questions.all|dictsort:"question_type"|length %}
-                    {% if mcq_count > 0 %}
-                    <li>Multiple Choice Questions: {{ mcq_count }}</li>
-                    {% endif %}
-                    {% endwith %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3>Test Details</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Duration:</strong> {{ test.duration_minutes }} minutes</p>
+                    <p><strong>Questions:</strong> {{ test.question_set.count }}</p>
+                    <p><strong>Status:</strong> {% if test.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</p>
                     
-                    {% with code_count=test.questions.all|dictsort:"question_type"|length %}
-                    {% if code_count > 0 %}
-                    <li>Coding Questions: {{ code_count }}</li>
+                    {% if test.is_active %}
+                        {% if user_completed_attempts >= 2 %}
+                            <div class="alert alert-info">
+                                You have already completed this test twice.
+                                <a href="{% url 'tests:test-results' attempt_id=user_latest_attempt.id %}" class="btn btn-sm btn-primary ms-2">View Latest Results</a>
+                            </div>
+                        {% elif user_completed_test %}
+                            <div class="alert alert-info">
+                                You have completed this test once. You can attempt it one more time.
+                                <a href="{% url 'tests:test-results' attempt_id=user_attempt.id %}" class="btn btn-sm btn-primary ms-2">View Results</a>
+                            </div>
+                        {% elif user_attempt %}
+                            <div class="alert alert-warning">
+                                You have an incomplete attempt for this test.
+                                <a href="{% url 'tests:take-test' attempt_id=user_attempt.id %}" class="btn btn-sm btn-primary ms-2">Continue Test</a>
+                            </div>
+                        {% else %}
+                            <div class="mt-4">
+                                <a href="{% url 'tests:start-test' test_id=test.id %}" class="btn btn-primary">
+                                    Start Test
+                                </a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-secondary">
+                            This test is currently not active.
+                        </div>
                     {% endif %}
-                    {% endwith %}
-                    
-                    {% with text_count=test.questions.all|dictsort:"question_type"|length %}
-                    {% if text_count > 0 %}
-                    <li>Short Answer Questions: {{ text_count }}</li>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    {% if user_completed_test and user_completed_attempts < 2 %}
+                        <a href="{% url 'tests:test-results' user_attempt.id %}" class="btn btn-primary">View Results</a>
+                        <a href="{% url 'tests:start-test' test.id %}" class="btn btn-warning">Attempt Again</a>
+                    {% elif user_completed_attempts >= 2 %}
+                        <a href="{% url 'tests:test-results' user_latest_attempt.id %}" class="btn btn-primary">View Latest Results</a>
+                        <a href="{% url 'tests:attempt-list' %}" class="btn btn-info">View All Attempts</a>
+                    {% elif user_attempt and not user_completed_test %}
+                        <a href="{% url 'tests:take-test' user_attempt.id %}" class="btn btn-success">Continue Test</a>
+                    {% else %}
+                        <a href="{% url 'tests:start-test' test.id %}" class="btn btn-primary">Start Test</a>
                     {% endif %}
-                    {% endwith %}
-                </ul>
+                </div>
             </div>
             
-            <div class="alert alert-warning mt-4">
-                <h6 class="alert-heading">Important Notes:</h6>
-                <ul>
-                    <li>Once you start the test, the timer cannot be paused.</li>
-                    <li>Ensure you have a stable internet connection before starting.</li>
-                    <li>You must complete the test within {{ test.duration_minutes }} minutes.</li>
-                    <li>Your answers are automatically saved as you progress.</li>
-                </ul>
+            {% if user.is_staff %}
+            <div class="mb-4">
+                <h3>Admin Actions</h3>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'tests:upload-questions' test_id=test.id %}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload Questions
+                    </a>
+                    <a href="{% url 'tests:edit-test' test_id=test.id %}" class="btn btn-secondary">
+                        <i class="fas fa-edit"></i> Edit Test
+                    </a>
+                    {% if test.is_active %}
+                    <a href="{% url 'tests:toggle-test-status' test_id=test.id %}" class="btn btn-warning">
+                        <i class="fas fa-ban"></i> Deactivate
+                    </a>
+                    {% else %}
+                    <a href="{% url 'tests:toggle-test-status' test_id=test.id %}" class="btn btn-success">
+                        <i class="fas fa-check"></i> Activate
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-            
-            <div class="mt-4">
-                <a href="{% url 'frontend:take-test' test.id %}" class="btn btn-primary btn-lg">Start Test</a>
-                <a href="{% url 'frontend:test-list' %}" class="btn btn-outline-secondary">Back to Tests</a>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Test Information</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong>Created:</strong> {{ test.created_at|date:"F j, Y" }}</p>
+                    <p><strong>Last Updated:</strong> {{ test.updated_at|date:"F j, Y" }}</p>
+                    <p><strong>Total Points:</strong> {{ total_points }}</p>
+                    
+                    <h5 class="mt-4">Question Types:</h5>
+                    <ul>
+                        <li>Multiple Choice: {{ mcq_count }}</li>
+                        <li>Text Answer: {{ text_count }}</li>
+                        <li>Code Answer: {{ code_count }}</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

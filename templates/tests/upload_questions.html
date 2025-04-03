@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Questions - {{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Upload Questions for {{ test.title }}</h2>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">Upload a CSV or Excel file containing questions for this test.</p>
+                    
+                    <div class="alert alert-info">
+                        <h5>File Format Requirements:</h5>
+                        <p>Your file should include the following columns:</p>
+                        <ul>
+                            <li><strong>question_text</strong> (required): The text of the question</li>
+                            <li><strong>question_type</strong> (optional): MCQ, TEXT, or CODE (defaults to MCQ)</li>
+                            <li><strong>points</strong> (optional): Point value for the question (defaults to 1)</li>
+                            <li><strong>option_a, option_b, option_c, option_d</strong> (required for MCQ): The multiple choice options</li>
+                            <li><strong>correct_answer</strong> (required for MCQ): Which option is correct (A, B, C, or D)</li>
+                        </ul>
+                        <p>
+                            <a href="{% static 'files/question_template.csv' %}" class="btn btn-sm btn-outline-primary">
+                                Download Template CSV
+                            </a>
+                        </p>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ form.file.label_tag }}
+                            {{ form.file }}
+                            {% if form.file.errors %}
+                            <div class="text-danger">
+                                {{ form.file.errors }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.file.help_text }}</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Upload Questions</button>
+                            <a href="{% url 'tests:test-detail' test_id=test.id %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

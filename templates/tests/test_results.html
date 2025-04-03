@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Test Results - {{ test.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2 class="mb-0">Test Results: {{ test.title }}</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h4>Score</h4>
+                            <h1 class="display-4">{{ test_attempt.score|floatformat:1 }}%</h1>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-6">Start Time:</dt>
+                                <dd class="col-sm-6">{{ test_attempt.start_time }}</dd>
+                                
+                                <dt class="col-sm-6">End Time:</dt>
+                                <dd class="col-sm-6">{{ test_attempt.end_time }}</dd>
+                                
+                                <dt class="col-sm-6">Duration:</dt>
+                                <dd class="col-sm-6">
+                                    {% with duration=test_attempt.end_time|timeuntil:test_attempt.start_time %}
+                                        {{ duration }}
+                                    {% endwith %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mb-3">Question Summary</h4>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Question</th>
+                                    <th>Your Answer</th>
+                                    <th>Status</th>
+                                    <th>Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for answer in answers %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ answer.question.text|truncatechars:50 }}</td>
+                                    <td>
+                                        {% if answer.question.question_type == 'MCQ' %}
+                                            {% if answer.selected_option %}
+                                                {{ answer.selected_option.text }}
+                                            {% else %}
+                                                <em>Not answered</em>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if answer.text_answer %}
+                                                {{ answer.text_answer|truncatechars:50 }}
+                                            {% else %}
+                                                <em>Not answered</em>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if answer.is_correct %}
+                                            <span class="badge bg-success">Correct</span>
+                                        {% elif answer.question.question_type == 'MCQ' %}
+                                            <span class="badge bg-danger">Incorrect</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Pending Review</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if answer.is_correct %}
+                                            {{ answer.question.points }}
+                                        {% else %}
+                                            0
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'tests:test-detail' test_id=test.id %}" class="btn btn-primary">Back to Test</a>
+                    <a href="{% url 'tests:dashboard' %}" class="btn btn-secondary">Go to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

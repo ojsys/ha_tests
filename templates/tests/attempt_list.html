@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}My Test Attempts - Africa Plan Foundation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold">My Test Attempts</h1>
+            <p class="lead text-muted">View all your test attempts and results</p>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">All Test Attempts</h5>
+            <a href="{% url 'tests:dashboard' %}" class="btn btn-sm btn-outline-primary">Back to Dashboard</a>
+        </div>
+        <div class="card-body">
+            {% if test_attempts %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Test</th>
+                            <th>Started</th>
+                            <th>Completed</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for attempt in test_attempts %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="test-icon me-2">
+                                        <i class="material-icons">{% if attempt.is_completed %}assignment_turned_in{% else %}assignment{% endif %}</i>
+                                    </div>
+                                    <span>{{ attempt.test.title }}</span>
+                                </div>
+                            </td>
+                            <td>{{ attempt.start_time|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if attempt.end_time %}
+                                {{ attempt.end_time|date:"M d, Y H:i" }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <span class="badge rounded-pill bg-soft-success text-success">Completed</span>
+                                {% else %}
+                                <span class="badge rounded-pill bg-soft-warning text-warning">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <div class="score-display">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar {% if attempt.score >= 70 %}bg-success{% elif attempt.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ attempt.score }}%;" 
+                                             aria-valuenow="{{ attempt.score }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="score-text">{{ attempt.score|floatformat:1 }}%</span>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.is_completed %}
+                                <a href="{% url 'tests:attempt-detail' attempt.id %}" class="btn btn-sm btn-soft-primary">View Results</a>
+                                <a href="{% url 'tests:start-test' attempt.test.id %}" class="btn btn-sm btn-soft-warning">Attempt Again</a>
+                                {% else %}
+                                <a href="{% url 'tests:take-test' attempt.id %}" class="btn btn-sm btn-soft-success">Continue</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state text-center py-5">
+                <div class="empty-icon mb-3">
+                    <i class="material-icons">assignment</i>
+                </div>
+                <h5>No Test Attempts Yet</h5>
+                <p class="text-muted">You haven't attempted any tests yet.</p>
+                <a href="{% url 'tests:test-list' %}" class="btn btn-primary mt-2">Browse Available Tests</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Reuse the same styles from dashboard.html */
+    /* ... */
+</style>
+{% endblock %}

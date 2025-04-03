@@ -1,0 +1,71 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .file-upload-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .file-upload-info h3 {
+            margin-top: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:tests_test_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url 'admin:tests_test_change' test.id %}">{{ test.title }}</a>
+    &rsaquo; {% trans 'Upload Questions' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Upload Questions for {{ test.title }}</h1>
+    
+    <div class="file-upload-info">
+        <h3>File Format Requirements</h3>
+        <p>Your CSV or Excel file should include the following columns:</p>
+        <ul>
+            <li><strong>question_text</strong> (required): The text of the question</li>
+            <li><strong>question_type</strong> (optional): MCQ, TEXT, or CODE (defaults to MCQ)</li>
+            <li><strong>points</strong> (optional): Point value for the question (defaults to 1)</li>
+            <li><strong>option_a, option_b, option_c, option_d</strong> (required for MCQ): The multiple choice options</li>
+            <li><strong>correct_answer</strong> (required for MCQ): Which option is correct (A, B, C, or D)</li>
+        </ul>
+        <p>
+            <a href="{% static 'files/question_template.csv' %}" class="button">Download Template CSV</a>
+        </p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            {% for field in form %}
+                <div class="form-row">
+                    <div class="field-box">
+                        {{ field.errors }}
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                            <div class="help">{{ field.help_text|safe }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Upload Questions" class="default" name="_upload">
+            <a href="{% url 'admin:tests_test_change' test.id %}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

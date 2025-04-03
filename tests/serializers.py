@@ -1,17 +1,17 @@
 from rest_framework import serializers
-from .models import Test, Question, Choice, TestAttempt, Answer
+from .models import Test, Question, QuestionOption, TestAttempt, Answer
 
-class ChoiceSerializer(serializers.ModelSerializer):
+class QuestionOptionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Choice
+        model = QuestionOption
         fields = ['id', 'text']
 
 class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
+    options = QuestionOptionSerializer(many=True, read_only=True, source='options')
     
     class Meta:
         model = Question
-        fields = ['id', 'text', 'question_type', 'points', 'choices']
+        fields = ['id', 'text', 'question_type', 'points', 'options']
 
 class TestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,10 +25,9 @@ class TestDetailSerializer(serializers.ModelSerializer):
         model = Test
         fields = ['id', 'title', 'description', 'duration_minutes', 'questions', 'created_at']
 
-# Look for the AnswerSerializer class and ensure it's properly defined
 class AnswerSerializer(serializers.ModelSerializer):
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-    selected_choice = serializers.PrimaryKeyRelatedField(queryset=Choice.objects.all(), required=False, allow_null=True)
+    selected_choice = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all(), required=False, allow_null=True)
     
     class Meta:
         model = Answer

@@ -1,0 +1,115 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .option-group {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .option-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .option-row label {
+            margin-right: 10px;
+            min-width: 80px;
+        }
+        .option-row input[type="text"] {
+            flex-grow: 1;
+            padding: 5px;
+        }
+        .option-row input[type="radio"] {
+            margin-left: 10px;
+        }
+        #mcq-options {
+            display: none;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const questionTypeSelect = document.getElementById('question_type');
+            const mcqOptions = document.getElementById('mcq-options');
+            
+            function toggleMcqOptions() {
+                if (questionTypeSelect.value === 'MCQ') {
+                    mcqOptions.style.display = 'block';
+                } else {
+                    mcqOptions.style.display = 'none';
+                }
+            }
+            
+            questionTypeSelect.addEventListener('change', toggleMcqOptions);
+            toggleMcqOptions(); // Initial state
+        });
+    </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:tests_test_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url 'admin:tests_test_change' test.id %}">{{ test.title }}</a>
+    &rsaquo; {% trans 'Add Question' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Add Question to {{ test.title }}</h1>
+    
+    <form method="post">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="question_text">Question Text:</label>
+                    <textarea name="question_text" id="question_text" rows="4" cols="80" required></textarea>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="question_type">Question Type:</label>
+                    <select name="question_type" id="question_type" required>
+                        <option value="MCQ">Multiple Choice</option>
+                        <option value="TEXT">Text Answer</option>
+                        <option value="CODE">Code Answer</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="field-box">
+                    <label for="points">Points:</label>
+                    <input type="number" name="points" id="points" value="1" min="1" required>
+                </div>
+            </div>
+            
+            <div id="mcq-options" class="option-group">
+                <h3>Multiple Choice Options</h3>
+                <p>Enter the options and select the correct answer.</p>
+                
+                {% for i in "1234" %}
+                <div class="option-row">
+                    <label for="option_{{ i }}">Option {{ i }}:</label>
+                    <input type="text" name="option_{{ i }}" id="option_{{ i }}" required>
+                    <input type="radio" name="correct_option" value="{{ i }}" {% if forloop.first %}checked{% endif %}>
+                    <label for="correct_{{ i }}">Correct</label>
+                </div>
+                {% endfor %}
+            </div>
+        </fieldset>
+        
+        <div class="submit-row">
+            <input type="submit" value="Add Question" class="default" name="_add">
+            <a href="{% url 'admin:tests_test_change' test.id %}" class="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

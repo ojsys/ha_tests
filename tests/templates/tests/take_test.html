@@ -1,0 +1,33 @@
+<!-- ... existing code ... -->
+<div class="question-container mb-4">
+    <h4>Question {{ forloop.counter }}: {{ question.text }}</h4>
+    
+    {% if question.question_type == 'MCQ' %}
+        <!-- Fix: Add this section to display options -->
+        <div class="options-container mt-3">
+            {% for option in question.questionoption_set.all %}
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" 
+                           name="question_{{ question.id }}" 
+                           id="option_{{ option.id }}" 
+                           value="{{ option.id }}"
+                           {% if option.id in selected_options %}checked{% endif %}>
+                    <label class="form-check-label" for="option_{{ option.id }}">
+                        {{ option.text }}
+                    </label>
+                </div>
+            {% endfor %}
+        </div>
+    {% elif question.question_type == 'TEXT' %}
+        <!-- Text input for text questions -->
+        <div class="form-group mt-3">
+            <textarea class="form-control" name="question_{{ question.id }}" rows="3">{{ text_answers|get_item:question.id|default:'' }}</textarea>
+        </div>
+    {% elif question.question_type == 'CODE' %}
+        <!-- Code editor for code questions -->
+        <div class="form-group mt-3">
+            <textarea class="form-control code-editor" name="question_{{ question.id }}" rows="6">{{ text_answers|get_item:question.id|default:'' }}</textarea>
+        </div>
+    {% endif %}
+</div>
+<!-- ... existing code ... -->

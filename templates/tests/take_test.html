@@ -1,157 +1,126 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load test_tags %}
 
-{% block title %}Taking: {{ test.title }} - HackaTest{% endblock %}
+{% block title %}Taking: {{ test.title }}{% endblock %}
 
-{% block extra_css %}
+{% block extra_head %}
 <style>
-    .timer-container {
-        position: sticky;
-        top: 70px;
-        z-index: 100;
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .timer {
+        font-size: 1.2rem;
+        font-weight: bold;
     }
-    
-    .question-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-        margin-bottom: 20px;
+    .timer-warning {
+        color: #dc3545;
     }
-    
-    .question-nav-item {
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
-        cursor: pointer;
+    .question-card {
+        margin-bottom: 2rem;
     }
-    
-    .question-nav-item.active {
-        background-color: #007bff;
-        color: white;
+    .question-number {
+        font-weight: bold;
+        margin-right: 0.5rem;
     }
-    
-    .question-nav-item.answered {
+    .question-points {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .nav-pills .nav-link {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .nav-pills .nav-link.answered {
         background-color: #28a745;
         color: white;
-    }
-    
-    .question-container {
-        display: none;
-    }
-    
-    .question-container.active {
-        display: block;
-    }
-    
-    .code-editor {
-        height: 300px;
-        width: 100%;
-        border: 1px solid #dee2e6;
-        border-radius: 5px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container mt-4">
     <div class="row">
         <div class="col-md-9">
-            <h1 class="mb-4">{{ test.title }}</h1>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{{ test.title }}</h1>
+                <div class="timer" id="timer">Time remaining: <span id="time-display">Loading...</span></div>
+            </div>
             
-            <form id="test-form" method="post" action="{% url 'frontend:submit-test' test_attempt.id %}">
+            <form method="post" id="test-form">
                 {% csrf_token %}
                 
-                <div id="questions-container">
-                    {% for question in test.questions.all %}
-                    <div id="question-{{ question.id }}" class="question-container {% if forloop.first %}active{% endif %}" data-question-id="{{ question.id }}">
-                        <div class="card mb-4">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">Question {{ forloop.counter }}</h5>
-                                <span class="badge bg-primary">{{ question.get_question_type_display }}</span>
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">{{ question.text }}</p>
-                                
-                                {% if question.question_type == 'MCQ' %}
-                                <div class="mt-3">
-                                    {% for choice in question.choices.all %}
-                                    <div class="form-check">
-                                        <input class="form-check-input answer-input" type="radio" name="question_{{ question.id }}" id="choice_{{ choice.id }}" value="{{ choice.id }}" data-question-id="{{ question.id }}">
-                                        <label class="form-check-label" for="choice_{{ choice.id }}">
-                                            {{ choice.text }}
+                {% for question in questions %}
+                <div class="card question-card" id="question-{{ question.id }}">
+                    <div class="card-header">
+                        <span class="question-number">Question {{ forloop.counter }}</span>
+                        <span class="question-type badge bg-secondary">{{ question.get_question_type_display }}</span>
+                        <span class="question-points float-end">{{ question.points }} point{{ question.points|pluralize }}</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ question.text }}</p>
+                        
+                        {% if question.question_type == 'MCQ' %}
+                            <!-- Display options for multiple choice questions -->
+                            <div class="options-container mt-3">
+                                {% for option in question_options|get_item:question.id %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="question_{{ question.id }}" 
+                                               id="option_{{ option.id }}" 
+                                               value="{{ option.id }}"
+                                               {% if option.id in selected_choices %}checked{% endif %}>
+                                        <label class="form-check-label" for="option_{{ option.id }}">
+                                            {{ option.text }}
                                         </label>
                                     </div>
-                                    {% endfor %}
-                                </div>
-                                {% elif question.question_type == 'CODE' %}
-                                <div class="mt-3">
-                                    <textarea id="code_{{ question.id }}" class="code-editor answer-input" name="code_{{ question.id }}" data-question-id="{{ question.id }}"></textarea>
-                                </div>
-                                {% elif question.question_type == 'TEXT' %}
-                                <div class="mt-3">
-                                    <textarea class="form-control answer-input" id="text_{{ question.id }}" name="text_{{ question.id }}" rows="5" data-question-id="{{ question.id }}"></textarea>
-                                </div>
-                                {% endif %}
+                                {% endfor %}
                             </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mb-4">
-                            {% if not forloop.first %}
-                            <button type="button" class="btn btn-outline-primary prev-question">Previous</button>
-                            {% else %}
-                            <div></div>
-                            {% endif %}
-                            
-                            {% if not forloop.last %}
-                            <button type="button" class="btn btn-primary next-question">Next</button>
-                            {% else %}
-                            <button type="submit" class="btn btn-success" id="submit-test">Submit Test</button>
-                            {% endif %}
-                        </div>
+                        {% elif question.question_type == 'TEXT' %}
+                            <!-- Text input for text questions -->
+                            <div class="form-group mt-3">
+                                <textarea class="form-control" name="question_{{ question.id }}" rows="3">{{ text_answers|get_item:question.id|default:'' }}</textarea>
+                            </div>
+                        {% elif question.question_type == 'CODE' %}
+                            <!-- Code editor for code questions -->
+                            <div class="form-group mt-3">
+                                <textarea class="form-control code-editor" name="question_{{ question.id }}" rows="6">{{ text_answers|get_item:question.id|default:'' }}</textarea>
+                            </div>
+                        {% endif %}
                     </div>
-                    {% endfor %}
+                </div>
+                {% endfor %}
+                
+                <div class="d-flex justify-content-between mt-4 mb-5">
+                    <button type="submit" name="save_answers" class="btn btn-secondary">Save Answers</button>
+                    <button type="submit" name="submit_test" class="btn btn-primary" 
+                            onclick="return confirm('Are you sure you want to submit your test? You cannot make changes after submission.')">
+                        Submit Test
+                    </button>
                 </div>
             </form>
         </div>
         
         <div class="col-md-3">
-            <div class="timer-container mb-4">
-                <h5>Time Remaining</h5>
-                <div id="timer" class="display-6 text-center"></div>
-            </div>
-            
-            <div class="card mb-4">
+            <div class="card sticky-top" style="top: 20px;">
                 <div class="card-header">
-                    <h5 class="mb-0">Question Navigation</h5>
+                    <h5 class="mb-0">Question Navigator</h5>
                 </div>
                 <div class="card-body">
-                    <div class="question-nav" id="question-nav">
-                        {% for question in test.questions.all %}
-                        <div class="question-nav-item {% if forloop.first %}active{% endif %}" data-question-id="{{ question.id }}">
+                    <nav class="nav nav-pills flex-column flex-sm-row flex-wrap">
+                        {% for question in questions %}
+                        <a class="nav-link {% if question.id in answers %}answered{% endif %}" 
+                           href="#question-{{ question.id }}">
                             {{ forloop.counter }}
-                        </div>
+                        </a>
                         {% endfor %}
-                    </div>
+                    </nav>
                     
                     <div class="mt-3">
                         <div class="d-flex align-items-center mb-2">
-                            <div class="question-nav-item me-2"></div>
-                            <span>Not Answered</span>
-                        </div>
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="question-nav-item active me-2"></div>
-                            <span>Current Question</span>
+                            <div class="bg-secondary rounded-circle me-2" style="width: 15px; height: 15px;"></div>
+                            <small>Not answered</small>
                         </div>
                         <div class="d-flex align-items-center">
-                            <div class="question-nav-item answered me-2"></div>
-                            <span>Answered</span>
+                            <div class="bg-success rounded-circle me-2" style="width: 15px; height: 15px;"></div>
+                            <small>Answered</small>
                         </div>
                     </div>
                 </div>
@@ -159,173 +128,67 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Timer functionality
-        const startTime = new Date('{{ test_attempt.start_time|date:"c" }}');
-        const durationMinutes = {{ test.duration_minutes }};
-        const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+        let timeRemaining = {{ time_remaining }};
+        const timerDisplay = document.getElementById('time-display');
+        const timerElement = document.getElementById('timer');
         
         function updateTimer() {
-            const now = new Date();
-            const timeLeft = endTime - now;
-            
-            if (timeLeft <= 0) {
-                // Time's up, submit the test
-                document.getElementById('submit-test').click();
+            if (timeRemaining <= 0) {
+                // Time's up - submit the form
+                document.getElementById('test-form').submit();
                 return;
             }
             
-            const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            const hours = Math.floor(timeRemaining / 3600);
+            const minutes = Math.floor((timeRemaining % 3600) / 60);
+            const seconds = Math.floor(timeRemaining % 60);
             
-            const timerDisplay = document.getElementById('timer');
             timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            // Change color when less than 5 minutes remaining
-            if (timeLeft < 5 * 60 * 1000) {
-                timerDisplay.classList.add('text-danger');
+            // Add warning class if less than 5 minutes remaining
+            if (timeRemaining < 300) {
+                timerElement.classList.add('timer-warning');
             }
             
-            setTimeout(updateTimer, 1000);
+            timeRemaining--;
         }
         
+        // Update timer immediately and then every second
         updateTimer();
+        const timerInterval = setInterval(updateTimer, 1000);
         
-        // Question navigation
-        const questionContainers = document.querySelectorAll('.question-container');
-        const questionNavItems = document.querySelectorAll('.question-nav-item');
-        const nextButtons = document.querySelectorAll('.next-question');
-        const prevButtons = document.querySelectorAll('.prev-question');
-        
-        function showQuestion(questionId) {
-            // Hide all questions
-            questionContainers.forEach(container => {
-                container.classList.remove('active');
-            });
-            
-            // Show selected question
-            const selectedQuestion = document.querySelector(`.question-container[data-question-id="${questionId}"]`);
-            if (selectedQuestion) {
-                selectedQuestion.classList.add('active');
-            }
-            
-            // Update navigation
-            questionNavItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.questionId === questionId) {
-                    item.classList.add('active');
-                }
-            });
-        }
-        
-        // Click on navigation items
-        questionNavItems.forEach(item => {
-            item.addEventListener('click', function() {
-                showQuestion(this.dataset.questionId);
-            });
-        });
-        
-        // Next button
-        nextButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const currentQuestion = document.querySelector('.question-container.active');
-                const nextQuestion = currentQuestion.nextElementSibling;
-                if (nextQuestion && nextQuestion.classList.contains('question-container')) {
-                    showQuestion(nextQuestion.dataset.questionId);
-                }
-            });
-        });
-        
-        // Previous button
-        prevButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const currentQuestion = document.querySelector('.question-container.active');
-                const prevQuestion = currentQuestion.previousElementSibling;
-                if (prevQuestion && prevQuestion.classList.contains('question-container')) {
-                    showQuestion(prevQuestion.dataset.questionId);
-                }
-            });
-        });
-        
-        // Auto-save answers
-        const answerInputs = document.querySelectorAll('.answer-input');
-        answerInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const questionId = this.dataset.questionId;
-                const questionNavItem = document.querySelector(`.question-nav-item[data-question-id="${questionId}"]`);
-                questionNavItem.classList.add('answered');
-                
-                // Save answer via AJAX
-                saveAnswer(questionId, this);
-            });
-            
-            // For text and code inputs, use input event with debounce
-            if (input.tagName === 'TEXTAREA') {
-                let timeout;
-                input.addEventListener('input', function() {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        const questionId = this.dataset.questionId;
-                        const questionNavItem = document.querySelector(`.question-nav-item[data-question-id="${questionId}"]`);
-                        questionNavItem.classList.add('answered');
-                        
-                        // Save answer via AJAX
-                        saveAnswer(questionId, this);
-                    }, 1000);
+        // Periodically sync with server
+        setInterval(function() {
+            fetch('{% url "tests:time-remaining" attempt_id=test_attempt.id %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_completed) {
+                        // Test has been completed, redirect to results
+                        window.location.href = '{% url "tests:test-results" attempt_id=test_attempt.id %}';
+                    } else {
+                        // Update time remaining
+                        timeRemaining = data.time_remaining;
+                    }
                 });
-            }
-        });
+        }, 30000); // Sync every 30 seconds
         
-        function saveAnswer(questionId, inputElement) {
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-            const testAttemptId = {{ test_attempt.id }};
-            let data = {
-                question: questionId,
-            };
+        // Auto-save answers every minute
+        setInterval(function() {
+            const formData = new FormData(document.getElementById('test-form'));
+            formData.append('save_answers', 'true');
             
-            // Get the value based on input type
-            if (inputElement.type === 'radio') {
-                data.selected_choice = inputElement.value;
-            } else if (inputElement.id.startsWith('code_')) {
-                data.code_answer = inputElement.value;
-            } else if (inputElement.id.startsWith('text_')) {
-                data.text_answer = inputElement.value;
-            }
-            
-            // Send AJAX request
-            fetch(`/api/tests/attempts/${testAttemptId}/answer/`, {
+            fetch(window.location.href, {
                 method: 'POST',
+                body: formData,
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to save answer');
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
                 }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Answer saved successfully', data);
-            })
-            .catch(error => {
-                console.error('Error saving answer:', error);
             });
-        }
-        
-        // Form submission
-        document.getElementById('test-form').addEventListener('submit', function(e) {
-            if (!confirm('Are you sure you want to submit the test? You cannot make changes after submission.')) {
-                e.preventDefault();
-            }
-        });
+        }, 60000); // Auto-save every minute
     });
 </script>
 {% endblock %}

@@ -227,9 +227,10 @@
                             </td>
                             <td>
                                 {% if attempt.is_completed %}
-                                <a href="{% url 'tests:attempt-detail' attempt.id %}" class="btn btn-sm btn-soft-primary">View Results</a>
+                                <a href="{% url 'tests:test-results' attempt.id %}" class="btn btn-sm btn-soft-primary">View Results</a>
+                                <a href="{% url 'tests:start-test' attempt.test.id %}" class="btn btn-sm btn-soft-warning">Attempt Again</a>
                                 {% else %}
-                                <a href="{% url 'tests:take-test' attempt.test.id %}" class="btn btn-sm btn-soft-success">Continue</a>
+                                <a href="{% url 'tests:take-test' attempt.id %}" class="btn btn-sm btn-soft-success">Continue</a>
                                 {% endif %}
                             </td>
                         </tr>
