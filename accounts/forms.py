@@ -1,9 +1,3 @@
-from django import forms
-from django.contrib.auth import get_user_model
-from allauth.account.forms import SignupForm
-
-User = get_user_model()
-
 class CustomSignupForm(SignupForm):
     first_name = forms.CharField(
         max_length=150, 
