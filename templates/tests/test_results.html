@@ -92,6 +92,12 @@
                 <div class="card-footer">
                     <a href="{% url 'tests:test-detail' test_id=test.id %}" class="btn btn-primary">Back to Test</a>
                     <a href="{% url 'tests:dashboard' %}" class="btn btn-secondary">Go to Dashboard</a>
+                    <!-- Add this somewhere in your test results template -->
+                    <div class="mt-3">
+                        <a href="{% url 'tests:user-test-captures' attempt_id=attempt.id %}" class="btn btn-outline-info">
+                            <i class="fas fa-camera"></i> View Captured Images
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

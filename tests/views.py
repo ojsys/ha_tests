@@ -1,5 +1,11 @@
+import base64
+import os
+import uuid
+from datetime import datetime
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -11,13 +17,15 @@ from django.http import HttpResponseForbidden, JsonResponse
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Test, Question, QuestionOption, TestAttempt, Answer
+from .models import Test, Question, QuestionOption, TestAttempt, Answer, TestCapture
 from .serializers import (
     TestSerializer, 
     TestDetailSerializer, 
     TestAttemptSerializer,
     AnswerSerializer
 )
+
+
 
 
 # API Views
@@ -179,27 +187,102 @@ def test_detail(request, test_id):
     return render(request, 'tests/test_detail.html', {'test': test})
 
 @login_required
-def take_test(request, test_id):
-    test = get_object_or_404(Test, pk=test_id, is_active=True)
+def take_test(request, attempt_id):
+    test_attempt = get_object_or_404(TestAttempt, id=attempt_id, user=request.user)
+    test = test_attempt.test
     
-    # Check if user already has an attempt
-    test_attempt = TestAttempt.objects.filter(
-        user=request.user,
-        test=test,
-        is_completed=False
-    ).first()
+    # Check if test is already completed
+    if test_attempt.is_completed:
+        return redirect('tests:test-results', attempt_id=test_attempt.id)
     
-    if not test_attempt:
-        test_attempt = TestAttempt.objects.create(
-            user=request.user,
-            test=test,
-            start_time=timezone.now()
-        )
+    # Check if time is up
+    if test_attempt.is_time_up():
+        test_attempt.is_completed = True
+        test_attempt.end_time = timezone.now()
+        test_attempt.save()
+        test_attempt.calculate_score()
+        return redirect('tests:test-results', attempt_id=test_attempt.id)
     
-    return render(request, 'tests/take_test.html', {
+    # Get all questions for this test
+    questions = test.questions.all()
+    
+    # Get existing answers
+    answers = Answer.objects.filter(test_attempt=test_attempt)
+    answered_question_ids = [answer.question_id for answer in answers]
+    
+    # Create dictionaries to store selected choices and text answers
+    selected_choices = {}
+    text_answers = {}
+    
+    for answer in answers:
+        if answer.question.question_type == 'MCQ':
+            if answer.selected_option:  # Changed from selected_choice to selected_option
+                selected_choices[answer.question.id] = answer.selected_option.id
+        else:
+            text_answers[answer.question.id] = answer.text_answer
+    
+    # Process form submission
+    if request.method == 'POST':
+        for question in questions:
+            if question.question_type == 'MCQ':
+                option_id = request.POST.get(f'question_{question.id}')
+                if option_id:
+                    selected_option = get_object_or_404(QuestionOption, id=option_id)
+                    
+                    # Update or create answer - using selected_option instead of selected_choice
+                    answer, created = Answer.objects.update_or_create(
+                        test_attempt=test_attempt,
+                        question=question,
+                        defaults={
+                            'selected_option': selected_option,  # This is the correct field name
+                            'text_answer': None
+                        }
+                    )
+            else:  # TEXT or CODE
+                text_answer = request.POST.get(f'question_{question.id}')
+                if text_answer:
+                    # Update or create answer
+                    answer, created = Answer.objects.update_or_create(
+                        test_attempt=test_attempt,
+                        question=question,
+                        defaults={
+                            'selected_option': None,  # This is the correct field name
+                            'text_answer': text_answer
+                        }
+                    )
+        
+        # Check if user is submitting the test
+        if 'submit_test' in request.POST:
+            test_attempt.is_completed = True
+            test_attempt.end_time = timezone.now()
+            test_attempt.save()
+            test_attempt.calculate_score()
+            return redirect('tests:test-results', attempt_id=test_attempt.id)
+        
+        # If just saving, redirect back to the test
+        messages.success(request, "Your answers have been saved.")
+        return redirect('tests:take-test', attempt_id=test_attempt.id)
+    
+    # Create a dictionary to store options for each question
+    question_options = {}
+    for question in questions:
+        if question.question_type == 'MCQ':
+            # Get options directly from the QuestionOption model
+            options = QuestionOption.objects.filter(question=question)
+            question_options[question.id] = options
+    
+    context = {
         'test': test,
-        'test_attempt': test_attempt
-    })
+        'attempt': test_attempt,  # Changed from test_attempt to attempt to match template
+        'questions': questions,
+        'question_options': question_options,
+        'selected_choices': selected_choices,
+        'text_answers': text_answers,
+        'time_remaining': test_attempt.get_time_remaining(),
+        'answers': answered_question_ids,  # Added this to match template's expectation
+    }
+    
+    return render(request, 'tests/take_test.html', context)
 
 @login_required
 def results(request):
@@ -355,7 +438,31 @@ def toggle_test_status(request, test_id):
 
 
 
-@login_required
+# Add this new view function
+def test_consent(request, attempt_id):
+    """
+    Display a consent page before starting the test, warning about image capture
+    """
+    attempt = get_object_or_404(TestAttempt, id=attempt_id)
+    
+    # Check if the attempt belongs to the current user
+    if attempt.user != request.user:
+        messages.error(request, "You don't have permission to access this test attempt.")
+        return redirect('tests:dashboard')
+    
+    # If the user has already consented, redirect to the test
+    if request.method == 'POST':
+        # Mark that the user has consented
+        attempt.has_consented = True
+        attempt.save()
+        return redirect('tests:take-test', attempt_id=attempt_id)
+    
+    return render(request, 'tests/test_consent.html', {
+        'attempt': attempt,
+        'test': attempt.test
+    })
+
+# Modify your start_test view to redirect to the consent page instead of directly to take_test
 def start_test(request, test_id):
     test = get_object_or_404(Test, id=test_id)
     
@@ -485,7 +592,7 @@ def take_test(request, attempt_id):
     
     context = {
         'test': test,
-        'test_attempt': test_attempt,
+        'attempt': test_attempt,
         'questions': questions,
         'question_options': question_options,
         'selected_choices': selected_choices,
@@ -515,6 +622,31 @@ def test_results(request, attempt_id):
     
     return render(request, 'tests/test_results.html', context)
 
+# Add this new view function
+def time_remaining(request, attempt_id):
+    """Return the time remaining for a test attempt as JSON"""
+    try:
+        attempt = get_object_or_404(TestAttempt, id=attempt_id, user=request.user)
+        
+        # Check if test is already completed
+        if attempt.is_completed:
+            return JsonResponse({
+                'is_completed': True,
+                'time_remaining': 0
+            })
+        
+        # Get time remaining in seconds
+        time_remaining = attempt.get_time_remaining()
+        
+        return JsonResponse({
+            'is_completed': False,
+            'time_remaining': time_remaining
+        })
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
+
 @login_required
 def get_time_remaining(request, attempt_id):
     """AJAX endpoint to get remaining time for a test attempt"""
@@ -538,3 +670,100 @@ def attempt_list(request):
     }
     
     return render(request, 'tests/attempt_list.html', context)
+
+
+
+@require_POST
+@csrf_exempt
+def capture_image(request, attempt_id):
+    """Handle image captures from test monitoring"""
+    try:
+        attempt = TestAttempt.objects.get(id=attempt_id)
+        
+        if 'image' in request.FILES:
+            image = request.FILES['image']
+            
+            # Create the capture
+            capture = TestCapture.objects.create(
+                attempt=attempt,
+                image=image
+            )
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Image captured successfully',
+                'capture_id': str(capture.id)
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'No image provided'
+            }, status=400)
+            
+    except TestAttempt.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Test attempt with ID {attempt_id} not found'
+        }, status=404)
+    except Exception as e:
+        import traceback
+        print(f"Error in capture_image: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+def get_captures(request, attempt_id):
+    """
+    Get all captures for a test attempt (for admin/review purposes)
+    """
+    # Check if user is staff/admin
+    if not request.user.is_staff:
+        return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=403)
+    
+    try:
+        attempt = TestAttempt.objects.get(id=attempt_id)
+        captures = TestCapture.objects.filter(attempt=attempt).order_by('timestamp')
+        
+        captures_data = [
+            {
+                'id': capture.id,
+                'image_url': capture.image.url,
+                'timestamp': capture.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            for capture in captures
+        ]
+        
+        return JsonResponse({'status': 'success', 'captures': captures_data})
+    
+    except TestAttempt.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Test attempt not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+# Add this to your existing views.py file
+
+@staff_member_required
+def admin_view_captures(request, attempt_id):
+    """Admin view to see all captures for a specific test attempt"""
+    attempt = get_object_or_404(TestAttempt, id=attempt_id)
+    captures = TestCapture.objects.filter(attempt=attempt).order_by('-timestamp')
+    
+    return render(request, 'admin/tests/test_captures.html', {
+        'attempt': attempt,
+        'captures': captures,
+        'title': f'Captures for {attempt.user.username} - {attempt.test.title}'
+    })
+
+@login_required
+def user_test_captures(request, attempt_id):
+    """View for users to see their own captures from a test attempt"""
+    attempt = get_object_or_404(TestAttempt, id=attempt_id, user=request.user)
+    captures = TestCapture.objects.filter(attempt=attempt).order_by('-timestamp')
+    
+    return render(request, 'tests/user_test_captures.html', {
+        'attempt': attempt,
+        'captures': captures,
+        'title': f'Your Images from {attempt.test.title}'
+    })

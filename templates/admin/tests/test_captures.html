@@ -1,0 +1,139 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a> &rsaquo;
+    <a href="{% url 'admin:tests_testattempt_changelist' %}">Test Attempts</a> &rsaquo;
+    <a href="{% url 'admin:tests_testattempt_change' attempt.id %}">{{ attempt }}</a> &rsaquo;
+    Captures
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    <div class="module">
+        <h2>Test Information</h2>
+        <table>
+            <tr>
+                <th>User:</th>
+                <td>{{ attempt.user.username }} ({{ attempt.user.email }})</td>
+            </tr>
+            <tr>
+                <th>Test:</th>
+                <td>{{ attempt.test.title }}</td>
+            </tr>
+            <tr>
+                <th>Started:</th>
+                <td>{{ attempt.start_time }}</td>
+            </tr>
+            <tr>
+                <th>Completed:</th>
+                <td>{{ attempt.end_time|default:"Not completed" }}</td>
+            </tr>
+            <tr>
+                <th>Score:</th>
+                <td>{{ attempt.score|default:"Not scored" }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="module">
+        <h2>Captures ({{ captures.count }})</h2>
+        
+        {% if captures %}
+            <div class="captures-grid">
+                {% for capture in captures %}
+                    <div class="capture-item">
+                        <img src="{{ capture.image.url }}" alt="Capture at {{ capture.timestamp }}" />
+                        <p>{{ capture.timestamp }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <p>No captures available for this test attempt.</p>
+                
+                <h3>Troubleshooting:</h3>
+                <ul>
+                    <li>Check if the user allowed camera access during the test</li>
+                    <li>Verify that the JavaScript for capturing images is properly loaded</li>
+                    <li>Check browser console for any JavaScript errors</li>
+                    <li>Ensure the media directory is writable by the web server</li>
+                    <li>Check if the capture endpoint is receiving POST requests</li>
+                </ul>
+                
+                <p>Expected storage location: <code>{{ MEDIA_ROOT }}/test_captures/{{ attempt.id }}/</code></p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Add debugging section -->
+    <div class="module">
+        <h2>Debugging Information</h2>
+        <table>
+            <tr>
+                <th>Attempt ID:</th>
+                <td>{{ attempt.id }}</td>
+            </tr>
+            <tr>
+                <th>Media URL:</th>
+                <td>{{ MEDIA_URL }}</td>
+            </tr>
+            <tr>
+                <th>Media Root:</th>
+                <td>{{ MEDIA_ROOT }}</td>
+            </tr>
+            <tr>
+                <th>Expected Captures Path:</th>
+                <td>{{ MEDIA_ROOT }}/test_captures/{{ attempt.id }}/</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<style>
+    .captures-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .capture-item {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 4px;
+    }
+    
+    .capture-item img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+    
+    .capture-item p {
+        margin: 10px 0 0;
+        text-align: center;
+        font-size: 0.9em;
+        color: #666;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+    
+    .alert-warning {
+        color: #8a6d3b;
+        background-color: #fcf8e3;
+        border-color: #faebcc;
+    }
+</style>
+{% endblock %}

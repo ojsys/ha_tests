@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-warning text-white">
+            <h3>Important Notice - Test Monitoring</h3>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">Webcam Monitoring</h4>
+                <p>This test uses webcam monitoring to ensure academic integrity. During the test:</p>
+                <ul>
+                    <li>Your webcam will capture images at random intervals</li>
+                    <li>These images will be reviewed to verify your identity and prevent cheating</li>
+                    <li>All images are stored securely and will only be used for test verification purposes</li>
+                </ul>
+                <p>By proceeding, you consent to webcam monitoring during this test.</p>
+            </div>
+            
+            <h4>Test: {{ test.title }}</h4>
+            <p>Duration: {{ test.duration }} minutes</p>
+            <p>Questions: {{ test.question_set.count }}</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="consent" required>
+                    <label class="form-check-label" for="consent">
+                        I understand and consent to webcam monitoring during this test
+                    </label>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'tests:dashboard' %}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Proceed to Test</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

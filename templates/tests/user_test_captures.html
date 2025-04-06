@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h3 mb-0">{{ title }}</h1>
+        </div>
+        
+        <div class="card-body">
+            <div class="mb-4">
+                <h2 class="h4">Test Information</h2>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 150px;">Test:</th>
+                            <td>{{ attempt.test.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Started:</th>
+                            <td>{{ attempt.start_time }}</td>
+                        </tr>
+                        <tr>
+                            <th>Completed:</th>
+                            <td>{{ attempt.end_time|default:"Not completed" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Score:</th>
+                            <td>{{ attempt.score|default:"Not scored" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="h4">Images Captured During Your Test ({{ captures.count }})</h2>
+                
+                {% if captures %}
+                    <div class="alert alert-info">
+                        <p>These images were captured during your test to ensure academic integrity. They are only visible to you and test administrators.</p>
+                    </div>
+                    
+                    <div class="row">
+                        {% for capture in captures %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <img src="{{ capture.image.url }}" class="card-img-top" alt="Capture at {{ capture.timestamp }}">
+                                    <div class="card-body">
+                                        <p class="card-text text-center text-muted small">{{ capture.timestamp }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <p>No images were captured during this test attempt.</p>
+                        <p>This could be because:</p>
+                        <ul>
+                            <li>You didn't grant camera access during the test</li>
+                            <li>There was a technical issue with the camera capture</li>
+                            <li>The test didn't require image monitoring</li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4">
+                <a href="{% url 'tests:test-results' attempt_id=attempt.id %}" class="btn btn-primary">Back to Test Results</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

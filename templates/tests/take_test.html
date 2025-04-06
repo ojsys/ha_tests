@@ -32,11 +32,30 @@
         background-color: #28a745;
         color: white;
     }
+    .monitoring-alert {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .monitoring-icon {
+        color: #ffc107;
+        margin-right: 0.5rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
+    <!-- Add monitoring warning alert -->
+    <div class="monitoring-alert mb-5">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-camera monitoring-icon"></i>
+            <strong>Webcam Monitoring Active</strong>
+        </div>
+        <p class="mb-5 mt-1">This test uses webcam monitoring to ensure academic integrity. Your webcam will capture images at random intervals during the test. These images are securely stored and only accessible to test administrators.</p>
+    </div>
+    
     <div class="row">
         <div class="col-md-9">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -46,7 +65,7 @@
             
             <form method="post" id="test-form">
                 {% csrf_token %}
-                
+                <input type="hidden" id="test-attempt-id" value="{{ attempt.id }}">
                 {% for question in questions %}
                 <div class="card question-card" id="question-{{ question.id }}">
                     <div class="card-header">
@@ -99,14 +118,14 @@
         </div>
         
         <div class="col-md-3">
-            <div class="card sticky-top" style="top: 20px;">
+            <div class="card sticky-top" style="top: 20px; z-index: 100; position: sticky; max-height: calc(100vh - 40px); overflow-y: auto;">
                 <div class="card-header">
                     <h5 class="mb-0">Question Navigator</h5>
                 </div>
                 <div class="card-body">
                     <nav class="nav nav-pills flex-column flex-sm-row flex-wrap">
                         {% for question in questions %}
-                        <a class="nav-link {% if question.id in answers %}answered{% endif %}" 
+                        <a class="nav-link {% if question.id in answered_question_ids %}answered{% endif %}" 
                            href="#question-{{ question.id }}">
                             {{ forloop.counter }}
                         </a>
@@ -129,16 +148,29 @@
     </div>
 </div>
 
+
+
+
+<!-- Add this at the bottom of your template, before the closing body tag -->
+<script src="{% static 'js/test_monitoring.js' %}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Get the attempt ID from the hidden input field
+        const attemptId = document.getElementById('test-attempt-id').value;
+        console.log('Initializing monitoring with attempt ID:', attemptId);
+        
+        // Initialize the monitoring with the attempt ID
+        const monitoring = new TestMonitoring(attemptId);
+        monitoring.initialize();
+        
         // Timer functionality
-        let timeRemaining = {{ time_remaining }};
         const timerDisplay = document.getElementById('time-display');
-        const timerElement = document.getElementById('timer');
+        let timeRemaining = {{ time_remaining }};
         
         function updateTimer() {
             if (timeRemaining <= 0) {
-                // Time's up - submit the form
+                // Time's up, submit the form
                 document.getElementById('test-form').submit();
                 return;
             }
@@ -147,11 +179,12 @@
             const minutes = Math.floor((timeRemaining % 3600) / 60);
             const seconds = Math.floor(timeRemaining % 60);
             
+            // Format the time display - using Math.floor to ensure we only show whole seconds
             timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             
-            // Add warning class if less than 5 minutes remaining
+            // Add warning class when less than 5 minutes remaining
             if (timeRemaining < 300) {
-                timerElement.classList.add('timer-warning');
+                document.getElementById('timer').classList.add('timer-warning');
             }
             
             timeRemaining--;
@@ -159,36 +192,23 @@
         
         // Update timer immediately and then every second
         updateTimer();
-        const timerInterval = setInterval(updateTimer, 1000);
+        setInterval(updateTimer, 1000);
         
-        // Periodically sync with server
+        // Also fetch the time from server periodically to ensure accuracy
         setInterval(function() {
-            fetch('{% url "tests:time-remaining" attempt_id=test_attempt.id %}')
+            fetch(`/tests/attempt/${attemptId}/time-remaining/`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.is_completed) {
-                        // Test has been completed, redirect to results
-                        window.location.href = '{% url "tests:test-results" attempt_id=test_attempt.id %}';
+                        // Test is completed, redirect to results
+                        window.location.href = `/tests/attempt/${attemptId}/results/`;
                     } else {
-                        // Update time remaining
+                        // Update the time remaining
                         timeRemaining = data.time_remaining;
                     }
-                });
-        }, 30000); // Sync every 30 seconds
-        
-        // Auto-save answers every minute
-        setInterval(function() {
-            const formData = new FormData(document.getElementById('test-form'));
-            formData.append('save_answers', 'true');
-            
-            fetch(window.location.href, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                }
-            });
-        }, 60000); // Auto-save every minute
+                })
+                .catch(error => console.error('Error fetching time:', error));
+        }, 30000); // Check every 30 seconds
     });
 </script>
 {% endblock %}

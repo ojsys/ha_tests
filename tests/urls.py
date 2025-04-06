@@ -35,6 +35,7 @@ urlpatterns = [
     path('tests/<uuid:test_id>/upload-questions/', views.upload_questions, name='upload-questions'),
     
     # For test attempts
+    path('attempt/<uuid:attempt_id>/consent/', views.test_consent, name='test-consent'),  # New consent page
     path('attempt/<uuid:attempt_id>/', views.take_test, name='take-test'),
     path('attempt/<uuid:attempt_id>/results/', views.test_results, name='test-results'),
     path('attempt/<uuid:attempt_id>/time-remaining/', views.get_time_remaining, name='time-remaining'),
@@ -46,4 +47,12 @@ urlpatterns = [
     # Add or update this URL pattern
     path('test/<uuid:test_id>/edit/', views.edit_test, name='edit-test'),
     path('test/<uuid:test_id>/toggle-status/', views.toggle_test_status, name='toggle-test-status'),
+    
+    # Add new URL patterns for image capture
+    # Make sure this URL pattern matches what we're using in JavaScript
+    path('attempt/<uuid:attempt_id>/capture-image/', views.capture_image, name='capture_image'),
+    path('attempt/<uuid:attempt_id>/time-remaining/', views.time_remaining, name='time_remaining'),
+    path('attempt/<uuid:attempt_id>/get-captures/', views.get_captures, name='get-captures'),
+    # Add this to your urlpatterns
+    path('attempt/<uuid:attempt_id>/captures/', views.user_test_captures, name='user-test-captures'),
 ]
